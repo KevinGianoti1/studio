@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes particles {
+  from {
+    background-position: 50% 50%, 0% 0%;
+  }
+  to {
+    background-position: -150% 50%, 200% 200%;
+  }
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 96%; /* #F5F5F5 - Light Gray */
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 158 79% 41%; /* Vibrant Green */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 262 82% 57%; /* Vibrant Purple */
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 158 79% 41%; /* Green for ring */
+    --chart-1: 158 70% 50%;
+    --chart-2: 180 70% 40%;
+    --chart-3: 262 70% 50%; /* Purple */
+    --chart-4: 310 60% 50%; /* Pink */
+    --chart-5: 43 74% 66%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 240 5% 12%;
+    --foreground: 0 0% 98%;
+    --card: 240 5% 15%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 5% 12%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 158 80% 55%; /* Lighter Green for dark mode */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 240 5% 20%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 5% 22%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 262 80% 65%; /* Lighter Purple */
+    --accent-foreground: 262 100% 15%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5% 25%;
+    --input: 240 5% 25%;
+    --ring: 158 80% 55%;
+    --chart-1: 158 70% 50%;
+    --chart-2: 180 70% 50%;
+    --chart-3: 262 70% 60%;
+    --chart-4: 310 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    background-image: 
+      radial-gradient(circle at 20% 25%, hsl(var(--primary) / 0.1), transparent 30%),
+      radial-gradient(circle at 80% 15%, hsl(var(--accent) / 0.1), transparent 30%),
+      radial-gradient(circle at 50% 80%, hsl(var(--chart-2) / 0.1), transparent 30%),
+      radial-gradient(circle at 90% 95%, hsl(var(--destructive) / 0.1), transparent 30%),
+      radial-gradient(circle at 5% 90%, hsl(var(--primary) / 0.05), transparent 25%);
+    background-size: 200% 200%;
+    animation: particles 120s linear infinite;
+  }
+
+  body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: radial-gradient(hsl(var(--muted-foreground) / 0.1) 1px, transparent 1px);
+      background-size: 16px 16px;
+      z-index: -1;
+      pointer-events: none;
+  }
+}
+
+/* Shimmer animation for Skeleton */
+@layer utilities {
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-shimmer {
+      position: relative;
+      overflow: hidden;
+  }
+
+  .animate-shimmer::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      transform: translateX(-100%);
+      background-image: linear-gradient(
+          90deg,
+          hsl(var(--muted) / 0) 0,
+          hsl(var(--muted) / 0.1) 20%,
+          hsl(var(--muted) / 0.3) 60%,
+          hsl(var(--muted) / 0)
+      );
+      animation: shimmer 2s infinite;
+  }
+}
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .card {
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    margin: 1.5rem !important;
+  }
+   h2 {
+    padding-top: 1rem;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+}
