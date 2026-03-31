@@ -9,6 +9,7 @@ import { usePathname } from 'next/navigation';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const environmentLabel = process.env.NODE_ENV === 'production' ? 'PROD' : process.env.NODE_ENV === 'development' ? 'DEV' : 'HML';
     const menuItems = [
       { href: '/', label: 'Visão Geral', icon: <LayoutDashboard />, match: (path: string) => path === '/' },
       { href: '/accelerators', label: 'Aceleradores', icon: <Rocket />, match: (path: string) => path.startsWith('/accelerators') },
@@ -121,6 +122,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                     <div className="container flex h-16 items-center">
                         <SidebarTrigger className="md:hidden"/>
                         <div className="ml-auto flex items-center gap-2">
+                            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-muted text-muted-foreground">
+                              {environmentLabel}
+                            </span>
                             <ThemeToggle />
                         </div>
                     </div>

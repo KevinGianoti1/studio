@@ -32,6 +32,7 @@ type MeetingsContextType = {
   isLoading: boolean;
   isMounted: boolean;
   error: string | null;
+  lastRequestId: string | null;
   loadData: () => Promise<void>;
 };
 
@@ -40,6 +41,7 @@ export const MeetingsContext = createContext<MeetingsContextType>({
   isLoading: true,
   isMounted: false,
   error: null,
+  lastRequestId: null,
   loadData: async () => {},
 });
 
@@ -47,6 +49,7 @@ export const MeetingsProvider = ({ children }: { children: ReactNode }) => {
   const [meetings, setMeetings] = useState<UIMeeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastRequestId, setLastRequestId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const { toast } = useToast();
 
@@ -57,6 +60,7 @@ export const MeetingsProvider = ({ children }: { children: ReactNode }) => {
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
+    setLastRequestId(null);
     try {
       const maxAttempts = 2;
       let response: Response | null = null;
@@ -92,6 +96,7 @@ export const MeetingsProvider = ({ children }: { children: ReactNode }) => {
       if (!response.ok) {
         const errorData = await response.json();
         const requestId = response.headers.get('x-request-id');
+        setLastRequestId(requestId);
         const suffix = requestId ? ` (ref: ${requestId})` : '';
         throw new Error((errorData.error || 'Falha ao buscar dados da API de reuniões') + suffix);
       }
@@ -142,8 +147,9 @@ export const MeetingsProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     isMounted,
     error,
+    lastRequestId,
     loadData
-  }), [meetings, isLoading, isMounted, error, loadData]);
+  }), [meetings, isLoading, isMounted, error, lastRequestId, loadData]);
 
   return (
     <MeetingsContext.Provider value={value}>

@@ -64,7 +64,7 @@ const PageSkeleton = () => (
 
 
 const AttributesContent = memo(() => {
-  const { meetings, isLoading, error } = useContext(MeetingsContext);
+  const { meetings, isLoading, error, lastRequestId } = useContext(MeetingsContext);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedSellerData, setSelectedSellerData] = useState<SellerAttributeData | null>(null);
 
@@ -112,8 +112,16 @@ const AttributesContent = memo(() => {
           <CardHeader>
             <CardTitle>Ocorreu um Erro</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <p className="text-sm font-mono bg-muted p-4 rounded-md text-destructive-foreground">{error}</p>
+            {lastRequestId && (
+              <Button
+                variant="outline"
+                onClick={() => navigator.clipboard.writeText(lastRequestId)}
+              >
+                Copiar referência de suporte ({lastRequestId})
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
