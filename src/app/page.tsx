@@ -5,7 +5,7 @@ import { Suspense, useContext } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, User, ArrowRight, Tag, ClipboardList, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket } from "lucide-react";
+import { Users, User, ArrowRight, Tag, ClipboardList, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket, Activity } from "lucide-react";
 import { SalesProvider, SalesContext } from "@/contexts/sales-context";
 import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "@/components/page-header";
 import { StrategicOverview } from "@/components/strategic-overview";
@@ -91,6 +91,13 @@ function HomePageContent() {
                 title="Relatório de Sell Out"
                 description="Faça upload e analise os dados de venda de produtos para clientes."
                 buttonText="Analisar Sell Out"
+              />
+              <CardLink
+                href="/health"
+                icon={<Activity className="h-8 w-8 text-primary" />}
+                title="Saúde do Sistema"
+                description="Monitore disponibilidade, variáveis críticas e status operacional do ambiente."
+                buttonText="Ver Saúde"
               />
           </div>
         </section>

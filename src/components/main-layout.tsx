@@ -3,7 +3,7 @@
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import Link from 'next/link';
-import { LayoutDashboard, Users, User, Tag, ClipboardList, Menu, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket } from 'lucide-react';
+import { LayoutDashboard, Users, User, Tag, ClipboardList, Menu, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket, Activity } from 'lucide-react';
 import React from 'react';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
@@ -164,6 +164,14 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                         <Link href="/sellout">
                           <ShoppingCart />
                           <span>Sell Out</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild tooltip="Saúde do Sistema">
+                        <Link href="/health">
+                          <Activity />
+                          <span>Saúde</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
