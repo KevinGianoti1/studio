@@ -21,19 +21,18 @@ import { useIsClient } from '@/hooks/use-is-client';
 import type { AcceleratorRule } from '@/types';
 import { MainLayout } from '@/components/main-layout';
 
-// --- Local Data: Rules are now defined here based on user input ---
-const allRules: AcceleratorRule[] = [
-    // Rules for August (Month index 7) - From user image
-    { id: 'aug_15_sexta', label: 'Atingir 15% da meta na sexta', metaPercent: 15, bonus: 0.0015, deadline: new Date(2024, 7, 1) },
-    { id: 'aug_20_sexta', label: 'Atingir 20% da meta até sexta', metaPercent: 20, bonus: 0.0020, deadline: new Date(2024, 7, 1) },
-    { id: 'aug_40_0808', label: 'Atingir 40% até 08/08', metaPercent: 40, bonus: 0.0015, deadline: new Date(2024, 7, 8) },
-    { id: 'aug_50_0808', label: 'Atingir 50% até 08/08', metaPercent: 50, bonus: 0.0020, deadline: new Date(2024, 7, 8) },
-    { id: 'aug_100_2708', label: 'Bater 100% da meta até 27/08', metaPercent: 100, bonus: 0.001, deadline: new Date(2024, 7, 27) },
+const buildRulesForYear = (year: number): AcceleratorRule[] => [
+    // Rules for August (Month index 7)
+    { id: 'aug_15_sexta', label: 'Atingir 15% da meta na sexta', metaPercent: 15, bonus: 0.0015, deadline: new Date(year, 7, 1) },
+    { id: 'aug_20_sexta', label: 'Atingir 20% da meta até sexta', metaPercent: 20, bonus: 0.0020, deadline: new Date(year, 7, 1) },
+    { id: 'aug_40_0808', label: 'Atingir 40% até 08/08', metaPercent: 40, bonus: 0.0015, deadline: new Date(year, 7, 8) },
+    { id: 'aug_50_0808', label: 'Atingir 50% até 08/08', metaPercent: 50, bonus: 0.0020, deadline: new Date(year, 7, 8) },
+    { id: 'aug_100_2708', label: 'Bater 100% da meta até 27/08', metaPercent: 100, bonus: 0.001, deadline: new Date(year, 7, 27) },
 
-    // Rules for September (Month index 8) - From user image
-    { id: 'sep_20_0509', label: '20% da Meta até 05/09', metaPercent: 20, bonus: 0.002, deadline: new Date(2024, 8, 5) },
-    { id: 'sep_60_1209', label: '60% da Meta até 12/09', metaPercent: 60, bonus: 0.002, deadline: new Date(2024, 8, 12) },
-    { id: 'sep_100_2409', label: '100% da Meta Batida até 24/09', metaPercent: 100, bonus: 0.001, deadline: new Date(2024, 8, 24) },
+    // Rules for September (Month index 8)
+    { id: 'sep_20_0509', label: '20% da Meta até 05/09', metaPercent: 20, bonus: 0.002, deadline: new Date(year, 8, 5) },
+    { id: 'sep_60_1209', label: '60% da Meta até 12/09', metaPercent: 60, bonus: 0.002, deadline: new Date(year, 8, 12) },
+    { id: 'sep_100_2409', label: '100% da Meta Batida até 24/09', metaPercent: 100, bonus: 0.001, deadline: new Date(year, 8, 24) },
 ];
 
 
@@ -128,7 +127,9 @@ function AcceleratorsContent() {
     const filteredRules = useMemo(() => {
         if (!date?.from) return [];
         const selectedMonth = getMonth(date.from);
-        return allRules.filter(rule => getMonth(rule.deadline) === selectedMonth);
+        const selectedYear = date.from.getFullYear();
+        const rulesForYear = buildRulesForYear(selectedYear);
+        return rulesForYear.filter(rule => getMonth(rule.deadline) === selectedMonth);
     }, [date]);
 
 

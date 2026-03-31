@@ -52,8 +52,8 @@ export default function LoginPage() {
           title: 'Login bem-sucedido!',
           description: 'Redirecionando para o sistema...',
         });
-        // Force a full page reload to ensure middleware is re-evaluated
-        window.location.href = '/';
+        router.replace('/');
+        router.refresh();
       } else {
         const errorData = await response.json();
         toast({
