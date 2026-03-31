@@ -58,8 +58,37 @@ export const MeetingsProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     setError(null);
     try {
-      // Use the API route instead of the flow directly
-      const response = await fetch('/api/meetings', { cache: 'no-store' });
+      const maxAttempts = 2;
+      let response: Response | null = null;
+      let lastError: Error | null = null;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+
+        try {
+          response = await fetch('/api/meetings', {
+            cache: 'no-store',
+            signal: controller.signal,
+            headers: { 'x-request-id': crypto.randomUUID() },
+          });
+          clearTimeout(timeout);
+          lastError = null;
+          break;
+        } catch (error) {
+          clearTimeout(timeout);
+          const message = error instanceof Error ? error.message : 'Erro desconhecido';
+          lastError = new Error(`Tentativa ${attempt}/${maxAttempts}: ${message}`);
+          if (attempt < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 400));
+          }
+        }
+      }
+
+      if (!response) {
+        throw lastError || new Error('Falha ao buscar dados da API de reuniões.');
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
         const requestId = response.headers.get('x-request-id');
