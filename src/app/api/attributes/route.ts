@@ -1,8 +1,9 @@
 // src/app/api/attributes/route.ts
-import { NextResponse, type NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { fetchMeetingsData } from '@/ai/flows/fetch-meetings-flow';
 import type { Meeting } from '@/types';
 import { isAuthorizedRequest } from '@/lib/api-auth';
+import { fail, ok } from '@/lib/api-response';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,20 +51,14 @@ function calculateAttributeAverages(meetings: Meeting[]): SellerAttributeData[] 
 
 export async function GET(request: NextRequest) {
   if (!isAuthorizedRequest(request)) {
-    return new NextResponse(JSON.stringify({ error: 'Não autorizado' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return fail('Não autorizado', 401);
   }
 
   try {
     const meetingsResult = await fetchMeetingsData();
 
     if (meetingsResult.error) {
-      return new NextResponse(JSON.stringify({ error: meetingsResult.error }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return fail(meetingsResult.error, 500);
     }
 
     const meetings = meetingsResult.data || [];
@@ -75,11 +70,8 @@ export async function GET(request: NextRequest) {
       attributeData,
     };
 
-    return NextResponse.json(response);
+    return ok(response);
   } catch (error: any) {
-    return new NextResponse(JSON.stringify({ error: 'Erro interno do servidor', details: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return fail('Erro interno do servidor', 500, error.message);
   }
 }

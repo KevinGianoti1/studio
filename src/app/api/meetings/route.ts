@@ -1,33 +1,25 @@
 // src/app/api/meetings/route.ts
-import { NextResponse, type NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { fetchMeetingsData } from '@/ai/flows/fetch-meetings-flow';
 import { isAuthorizedRequest } from '@/lib/api-auth';
+import { fail, ok } from '@/lib/api-response';
 
 export const dynamic = 'force-dynamic'; // Garante que a função seja executada a cada requisição
 
 export async function GET(request: NextRequest) {
   if (!isAuthorizedRequest(request)) {
-    return new NextResponse(JSON.stringify({ error: 'Não autorizado' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return fail('Não autorizado', 401);
   }
 
   try {
     const meetingsResult = await fetchMeetingsData();
 
     if (meetingsResult.error) {
-      return new NextResponse(JSON.stringify({ error: meetingsResult.error }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return fail(meetingsResult.error, 500);
     }
 
-    return NextResponse.json(meetingsResult.data || []);
+    return ok(meetingsResult.data || []);
   } catch (error: any) {
-    return new NextResponse(JSON.stringify({ error: 'Erro interno do servidor', details: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return fail('Erro interno do servidor', 500, error.message);
   }
 }

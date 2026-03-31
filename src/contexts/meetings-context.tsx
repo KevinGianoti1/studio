@@ -59,7 +59,7 @@ export const MeetingsProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
     try {
       // Use the API route instead of the flow directly
-      const response = await fetch('/api/meetings');
+      const response = await fetch('/api/meetings', { cache: 'no-store' });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Falha ao buscar dados da API de reuniões');

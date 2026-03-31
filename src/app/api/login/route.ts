@@ -1,6 +1,7 @@
 // src/app/api/login/route.ts
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { fail, ok } from '@/lib/api-response';
 
 export async function POST(request: Request) {
   try {
@@ -8,12 +9,13 @@ export async function POST(request: Request) {
     const loginPassword = process.env.LOGIN_PASSWORD;
 
     if (!loginPassword) {
-      return NextResponse.json({ error: 'A senha de login não está configurada no servidor.' }, { status: 500 });
+      return fail('A senha de login não está configurada no servidor.', 500);
     }
 
     if (password === loginPassword) {
-      const response = NextResponse.json({ success: true });
-      cookies().set('auth_token', 'user-is-authenticated', {
+      const response = ok({ success: true });
+      const cookieStore = await cookies();
+      cookieStore.set('auth_token', 'user-is-authenticated', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -22,9 +24,9 @@ export async function POST(request: Request) {
       });
       return response;
     } else {
-      return NextResponse.json({ error: 'Senha incorreta.' }, { status: 401 });
+      return fail('Senha incorreta.', 401);
     }
   } catch (error) {
-    return NextResponse.json({ error: 'Ocorreu um erro no servidor.' }, { status: 500 });
+    return fail('Ocorreu um erro no servidor.', 500);
   }
 }
