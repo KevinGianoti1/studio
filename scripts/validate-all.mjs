@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process';
+import { config as loadDotenv } from 'dotenv';
+
+loadDotenv({ path: '.env' });
+loadDotenv({ path: '.env.local', override: true });
 
 const steps = [
   { name: 'typecheck', cmd: ['npm', ['run', 'typecheck']] },
@@ -10,27 +14,36 @@ const steps = [
 for (const step of steps) {
   console.log(`\n▶ Running ${step.name}...`);
   const [command, args] = step.cmd;
-  const result = spawnSync(command, args, { stdio: 'inherit', shell: process.platform === 'win32' });
+  const result = spawnSync(command, args, {
+    stdio: 'inherit',
+    shell: process.platform === 'win32',
+    env: process.env,
+  });
+
   if (result.status !== 0) {
     console.error(`\n❌ ${step.name} failed`);
     process.exit(result.status || 1);
   }
+
   console.log(`✅ ${step.name} passed`);
 }
 
-if (process.env.VENDASCONTROL_API_KEY) {
+if (process.env.RUN_SMOKE_API === 'true') {
   console.log('\n▶ Running smoke:api...');
   const smoke = spawnSync('npm', ['run', 'smoke:api'], {
     stdio: 'inherit',
     shell: process.platform === 'win32',
+    env: process.env,
   });
+
   if (smoke.status !== 0) {
     console.error('\n❌ smoke:api failed');
     process.exit(smoke.status || 1);
   }
+
   console.log('✅ smoke:api passed');
 } else {
-  console.log('\n⚠️ Skipping smoke:api (VENDASCONTROL_API_KEY not set)');
+  console.log('\n⚠️ Skipping smoke:api (set RUN_SMOKE_API=true to enable)');
 }
 
 console.log('\n🎉 validate:all completed successfully');

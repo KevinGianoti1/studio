@@ -16,6 +16,11 @@ type HealthPayload = {
   failedChecks: string[];
 };
 
+type HealthResponse = {
+  success: true;
+  data: HealthPayload;
+};
+
 export default function HealthPage() {
   const [data, setData] = useState<HealthPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +35,9 @@ export default function HealthPage() {
       if (!response.ok) {
         throw new Error(payload.error || 'Falha ao carregar status de saúde.');
       }
-      setData(payload as HealthPayload);
+
+      const parsedPayload = payload as HealthResponse;
+      setData(parsedPayload.data);
     } catch (err: any) {
       setError(err.message || 'Erro ao carregar status de saúde.');
     } finally {

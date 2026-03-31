@@ -25,7 +25,10 @@ const MeetingSchema = z.object({
   courseSuggestions: z.string().optional(),
   nextEvaluationDate: z.string().optional(),
 });
-const MeetingsResponseSchema = z.array(MeetingSchema);
+const MeetingsApiResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.array(MeetingSchema),
+});
 
 type MeetingsContextType = {
   meetings: UIMeeting[];
@@ -101,12 +104,12 @@ export const MeetingsProvider = ({ children }: { children: ReactNode }) => {
         throw new Error((errorData.error || 'Falha ao buscar dados da API de reuniões') + suffix);
       }
       
-      const rawData: Meeting[] = await response.json();
-      const parsedMeetings = MeetingsResponseSchema.safeParse(rawData);
+      const rawPayload = await response.json();
+      const parsedMeetings = MeetingsApiResponseSchema.safeParse(rawPayload);
       if (!parsedMeetings.success) {
         throw new Error('Formato de resposta inválido para reuniões.');
       }
-      const data = parsedMeetings.data;
+      const data = parsedMeetings.data.data;
 
       const meetingsWithDates: UIMeeting[] = data
           .map(m => {
