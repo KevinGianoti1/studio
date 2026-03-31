@@ -43,11 +43,7 @@ export const MeetingsProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
     try {
       // Use the API route instead of the flow directly
-      const response = await fetch('/api/meetings', {
-        headers: {
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_VENDASCONTROL_API_KEY}`
-        }
-      });
+      const response = await fetch('/api/meetings');
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Falha ao buscar dados da API de reuniões');

@@ -2,6 +2,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { fetchMeetingsData } from '@/ai/flows/fetch-meetings-flow';
 import type { Meeting } from '@/types';
+import { isAuthorizedRequest } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,10 +49,7 @@ function calculateAttributeAverages(meetings: Meeting[]): SellerAttributeData[] 
 
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('Authorization');
-  const expectedApiKey = `Bearer ${process.env.NEXT_PUBLIC_VENDASCONTROL_API_KEY}`;
-
-  if (!process.env.NEXT_PUBLIC_VENDASCONTROL_API_KEY || authHeader !== expectedApiKey) {
+  if (!isAuthorizedRequest(request)) {
     return new NextResponse(JSON.stringify({ error: 'Não autorizado' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
