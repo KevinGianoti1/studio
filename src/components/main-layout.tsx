@@ -3,10 +3,26 @@
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import Link from 'next/link';
-import { LayoutDashboard, Users, User, Tag, ClipboardList, Menu, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, User, Tag, ClipboardList, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket, Activity } from 'lucide-react';
 import React from 'react';
+import { usePathname } from 'next/navigation';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+    const menuItems = [
+      { href: '/', label: 'Visão Geral', icon: <LayoutDashboard />, match: (path: string) => path === '/' },
+      { href: '/accelerators', label: 'Aceleradores', icon: <Rocket />, match: (path: string) => path.startsWith('/accelerators') },
+      { href: '/competition', label: 'Competição', icon: <Trophy />, match: (path: string) => path.startsWith('/competition') },
+      { href: '/teams', label: 'Equipes', icon: <Users />, match: (path: string) => path.startsWith('/teams') },
+      { href: '/sellers', label: 'Vendedores', icon: <User />, match: (path: string) => path.startsWith('/sellers') || path.startsWith('/history/') },
+      { href: '/campaigns', label: 'Campanhas', icon: <Tag />, match: (path: string) => path.startsWith('/campaigns') },
+      { href: '/survey', label: 'Reunião 1:1', icon: <ClipboardList />, match: (path: string) => path.startsWith('/survey') },
+      { href: '/deliverables', label: 'Entregáveis', icon: <ClipboardCheck />, match: (path: string) => path.startsWith('/deliverables') },
+      { href: '/attributes', label: 'Atributos', icon: <Radar />, match: (path: string) => path.startsWith('/attributes') },
+      { href: '/sellout', label: 'Sell Out', icon: <ShoppingCart />, match: (path: string) => path.startsWith('/sellout') },
+      { href: '/health', label: 'Saúde', icon: <Activity />, match: (path: string) => path.startsWith('/health') },
+    ];
+
     return (
         <SidebarProvider>
             <div className="flex min-h-screen">
@@ -87,94 +103,16 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                       </div>
                   </SidebarHeader>
                   <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="Visão Geral">
-                        <Link href="/">
-                          <LayoutDashboard />
-                          <span>Visão Geral</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Aceleradores">
-                        <Link href="/accelerators">
-                          <Rocket />
-                          <span>Aceleradores</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Competição">
-                        <Link href="/competition">
-                          <Trophy />
-                          <span>Competição</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Análise de Equipes">
-                        <Link href="/teams">
-                          <Users />
-                          <span>Equipes</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Análise de Vendedores">
-                        <Link href="/sellers">
-                          <User />
-                          <span>Vendedores</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Campanhas">
-                        <Link href="/campaigns">
-                          <Tag />
-                          <span>Campanhas</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Reunião 1:1">
-                        <Link href="/survey">
-                          <ClipboardList />
-                          <span>Reunião 1:1</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Entregáveis">
-                        <Link href="/deliverables">
-                          <ClipboardCheck />
-                          <span>Entregáveis</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Atributos">
-                        <Link href="/attributes">
-                          <Radar />
-                          <span>Atributos</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Sell Out">
-                        <Link href="/sellout">
-                          <ShoppingCart />
-                          <span>Sell Out</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="Saúde do Sistema">
-                        <Link href="/health">
-                          <Activity />
-                          <span>Saúde</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    {menuItems.map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton asChild tooltip={item.label} isActive={item.match(pathname)}>
+                          <Link href={item.href}>
+                            {item.icon}
+                            <span>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
                   </SidebarMenu>
                 </SidebarContent>
               </Sidebar>
