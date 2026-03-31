@@ -69,7 +69,10 @@ const analyzePerformanceFlow = ai.defineFlow(
   },
   async (salesData) => {
     
-    let aiAnalysisResult = { positivePoints: [], attentionPoints: [] };
+    let aiAnalysisResult: Pick<AnalyzePerformanceOutput, 'positivePoints' | 'attentionPoints'> = {
+      positivePoints: [],
+      attentionPoints: [],
+    };
     
     // --- AI Analysis ---
     if(salesData.length >= 2) { // Run AI only if there's enough data
