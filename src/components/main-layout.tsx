@@ -6,10 +6,12 @@ import Link from 'next/link';
 import { LayoutDashboard, Users, User, Tag, ClipboardList, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket, Activity } from 'lucide-react';
 import React from 'react';
 import { usePathname } from 'next/navigation';
+import { Input } from '@/components/ui/input';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const environmentLabel = process.env.NODE_ENV === 'production' ? 'PROD' : process.env.NODE_ENV === 'development' ? 'DEV' : 'HML';
+    const [menuSearch, setMenuSearch] = React.useState('');
     const menuItems = [
       { href: '/', label: 'Visão Geral', icon: <LayoutDashboard />, match: (path: string) => path === '/' },
       { href: '/accelerators', label: 'Aceleradores', icon: <Rocket />, match: (path: string) => path.startsWith('/accelerators') },
@@ -23,6 +25,11 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       { href: '/sellout', label: 'Sell Out', icon: <ShoppingCart />, match: (path: string) => path.startsWith('/sellout') },
       { href: '/health', label: 'Saúde', icon: <Activity />, match: (path: string) => path.startsWith('/health') },
     ];
+
+    const normalizedSearch = menuSearch.trim().toLowerCase();
+    const visibleMenuItems = normalizedSearch
+      ? menuItems.filter((item) => item.label.toLowerCase().includes(normalizedSearch))
+      : menuItems;
 
     return (
         <SidebarProvider>
@@ -103,8 +110,16 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                         <span className="text-lg font-bold tracking-tight text-primary">VendasControl</span>
                       </div>
                   </SidebarHeader>
+                  <div className="px-2 pb-2">
+                    <Input
+                      placeholder="Buscar seção..."
+                      value={menuSearch}
+                      onChange={(event) => setMenuSearch(event.target.value)}
+                      className="h-8"
+                    />
+                  </div>
                   <SidebarMenu>
-                    {menuItems.map((item) => (
+                    {visibleMenuItems.map((item) => (
                       <SidebarMenuItem key={item.href}>
                         <SidebarMenuButton asChild tooltip={item.label} isActive={item.match(pathname)}>
                           <Link href={item.href}>
@@ -114,6 +129,13 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
+                    {visibleMenuItems.length === 0 && (
+                      <SidebarMenuItem>
+                        <div className="text-xs text-muted-foreground px-2 py-1">
+                          Nenhuma seção encontrada.
+                        </div>
+                      </SidebarMenuItem>
+                    )}
                   </SidebarMenu>
                 </SidebarContent>
               </Sidebar>
