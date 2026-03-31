@@ -62,7 +62,9 @@ export const MeetingsProvider = ({ children }: { children: ReactNode }) => {
       const response = await fetch('/api/meetings', { cache: 'no-store' });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Falha ao buscar dados da API de reuniões');
+        const requestId = response.headers.get('x-request-id');
+        const suffix = requestId ? ` (ref: ${requestId})` : '';
+        throw new Error((errorData.error || 'Falha ao buscar dados da API de reuniões') + suffix);
       }
       
       const rawData: Meeting[] = await response.json();
