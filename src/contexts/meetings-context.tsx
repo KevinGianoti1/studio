@@ -5,11 +5,27 @@ import React, { createContext, useState, useEffect, useCallback, type ReactNode,
 import type { Meeting } from '@/types';
 import { useToast } from "@/hooks/use-toast";
 import { parseISO, isValid } from 'date-fns';
+import { z } from 'zod';
 
 export type UIMeeting = Omit<Meeting, 'evaluationDate' | 'nextEvaluationDate'> & {
     evaluationDate: Date;
     nextEvaluationDate?: Date;
 }
+
+const MeetingSchema = z.object({
+  evaluationDate: z.string(),
+  seller: z.string(),
+  prospeccao: z.number(),
+  qualificacao: z.number(),
+  apresentacao: z.number(),
+  objecoes: z.number(),
+  fechamento: z.number(),
+  followUp: z.number(),
+  gapsIdentified: z.string().optional(),
+  courseSuggestions: z.string().optional(),
+  nextEvaluationDate: z.string().optional(),
+});
+const MeetingsResponseSchema = z.array(MeetingSchema);
 
 type MeetingsContextType = {
   meetings: UIMeeting[];
@@ -49,7 +65,12 @@ export const MeetingsProvider = ({ children }: { children: ReactNode }) => {
         throw new Error(errorData.error || 'Falha ao buscar dados da API de reuniões');
       }
       
-      const data: Meeting[] = await response.json();
+      const rawData: Meeting[] = await response.json();
+      const parsedMeetings = MeetingsResponseSchema.safeParse(rawData);
+      if (!parsedMeetings.success) {
+        throw new Error('Formato de resposta inválido para reuniões.');
+      }
+      const data = parsedMeetings.data;
 
       const meetingsWithDates: UIMeeting[] = data
           .map(m => {

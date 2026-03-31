@@ -11,7 +11,7 @@ console.log('Attempting to load environment variables from:', envPath);
 console.log('GOOGLE_SHEET_ID loaded:', !!process.env.GOOGLE_SHEET_ID ? 'Yes' : 'No');
 console.log('GOOGLE_CLIENT_EMAIL loaded:', !!process.env.GOOGLE_CLIENT_EMAIL ? 'Yes' : 'No');
 console.log('GOOGLE_PRIVATE_KEY loaded:', !!process.env.GOOGLE_PRIVATE_KEY ? 'Yes' : 'No');
-console.log('VENDASCONTROL_API_KEY loaded:', !!(process.env.VENDASCONTROL_API_KEY || process.env.NEXT_PUBLIC_VENDASCONTROL_API_KEY) ? 'Yes' : 'No');
+console.log('VENDASCONTROL_API_KEY loaded:', !!process.env.VENDASCONTROL_API_KEY ? 'Yes' : 'No');
 console.log('EXTERNAL_API_URL loaded:', !!process.env.EXTERNAL_API_URL ? 'Yes' : 'No');
 console.log('EXTERNAL_API_KEY loaded:', !!process.env.EXTERNAL_API_KEY ? 'Yes' : 'No');
 
