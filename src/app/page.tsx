@@ -9,10 +9,10 @@ import { Users, User, ArrowRight, Tag, ClipboardList, Radar, ShoppingCart, Clipb
 import { SalesProvider, SalesContext } from "@/contexts/sales-context";
 import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "@/components/page-header";
 import { StrategicOverview } from "@/components/strategic-overview";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { MainLayout } from "@/components/main-layout";
 
 function HomePageContent() {
+  const { sales } = useContext(SalesContext);
 
   return (
     <>
@@ -23,7 +23,7 @@ function HomePageContent() {
       
       <div className="space-y-8">
         <section>
-          <StrategicOverview data={useContext(SalesContext).sales} />
+          <StrategicOverview data={sales} />
         </section>
 
         <section>
