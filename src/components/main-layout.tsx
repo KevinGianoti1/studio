@@ -3,7 +3,7 @@
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import Link from 'next/link';
-import { LayoutDashboard, Users, User, Tag, ClipboardList, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, User, Tag, ClipboardList, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket, Activity, Boxes } from 'lucide-react';
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       { href: '/deliverables', label: 'Entregáveis', icon: <ClipboardCheck />, match: (path: string) => path.startsWith('/deliverables') },
       { href: '/attributes', label: 'Atributos', icon: <Radar />, match: (path: string) => path.startsWith('/attributes') },
       { href: '/sellout', label: 'Sell Out', icon: <ShoppingCart />, match: (path: string) => path.startsWith('/sellout') },
+      { href: '/catalog', label: 'Comercial 360', icon: <Boxes />, match: (path: string) => path.startsWith('/catalog') },
       { href: '/health', label: 'Saúde', icon: <Activity />, match: (path: string) => path.startsWith('/health') },
     ];
 

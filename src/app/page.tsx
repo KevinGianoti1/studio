@@ -5,7 +5,7 @@ import { Suspense, useContext } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, User, ArrowRight, Tag, ClipboardList, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket, Activity } from "lucide-react";
+import { Users, User, ArrowRight, Tag, ClipboardList, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket, Activity, Boxes } from "lucide-react";
 import { SalesProvider, SalesContext } from "@/contexts/sales-context";
 import { PageHeader, PageHeaderTitle, PageHeaderDescription } from "@/components/page-header";
 import { StrategicOverview } from "@/components/strategic-overview";
@@ -98,6 +98,13 @@ function HomePageContent() {
                 title="Saúde do Sistema"
                 description="Monitore disponibilidade, variáveis críticas e status operacional do ambiente."
                 buttonText="Ver Saúde"
+              />
+              <CardLink
+                href="/catalog"
+                icon={<Boxes className="h-8 w-8 text-primary" />}
+                title="Comercial 360"
+                description="Centralize cadastro e relacionamento de produtos, preços e clientes."
+                buttonText="Abrir Comercial 360"
               />
           </div>
         </section>
