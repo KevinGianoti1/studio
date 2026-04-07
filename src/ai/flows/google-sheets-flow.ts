@@ -10,7 +10,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getSheetsService } from './campaigns-flow'; // Reusing the helper
 import { google } from 'googleapis';
-import type { Sale } from '@/types';
+import type { Company, Sale } from '@/types';
 
 // Define the expected data structure from the flow
 const SaleSchema = z.object({
@@ -90,7 +90,7 @@ const fetchSalesDataFlow = ai.defineFlow(
                 };
 
                 const group = row[1] || ''; // Coluna B: Equipe
-                const company = group.toUpperCase() === 'PYRAMID' ? 'Pyramid' : 'Maxiforce';
+                const company: Company = group.toUpperCase() === 'PYRAMID' ? 'Pyramid' : 'Maxiforce';
 
                 return {
                     id: `${spreadsheetId}-${index}`, // Generate a unique ID

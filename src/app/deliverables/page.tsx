@@ -220,7 +220,7 @@ function DeliverablesContent() {
     });
     
     // King of the Day is only for daily view
-    let kingOfTheDay = null;
+    let kingOfTheDay: string | null = null;
     if (viewMode === 'daily') {
         const sellersYesterday = [...new Set(yesterdaysData.map(d => d.seller))];
         const yesterdayScores: {seller: string, score: number}[] = sellersYesterday.map(seller => {

@@ -31,6 +31,16 @@ export const SalesContext = createContext<SalesContextType>({
   addSale: () => {},
 });
 
+const SALES_CACHE_KEY = 'sales-context-cache-v1';
+const SALES_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type SalesContextCache = {
+  timestamp: number;
+  sales: UIDateSale[];
+  campaigns: Campaign[];
+  deliverables: UIDeliverable[];
+};
+
 export const SalesProvider = ({ children }: { children: ReactNode }) => {
   const [sales, setSales] = useState<UIDateSale[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -44,7 +54,54 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
     setIsMounted(true);
   }, []);
 
-  const loadData = useCallback(async () => {
+  const readCachedData = useCallback((): SalesContextCache | null => {
+    try {
+      const raw = sessionStorage.getItem(SALES_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as SalesContextCache;
+      if (!parsed.timestamp || Date.now() - parsed.timestamp > SALES_CACHE_TTL_MS) {
+        sessionStorage.removeItem(SALES_CACHE_KEY);
+        return null;
+      }
+      return {
+        ...parsed,
+        sales: parsed.sales.map(s => ({ ...s, createdAt: new Date(s.createdAt) })),
+        campaigns: parsed.campaigns.map(c => ({ ...c, startDate: new Date(c.startDate), endDate: new Date(c.endDate) })),
+        deliverables: parsed.deliverables.map(d => ({ ...d, date: new Date(d.date) })),
+      };
+    } catch {
+      sessionStorage.removeItem(SALES_CACHE_KEY);
+      return null;
+    }
+  }, []);
+
+  const persistCache = useCallback((nextSales: UIDateSale[], nextCampaigns: Campaign[], nextDeliverables: UIDeliverable[]) => {
+    try {
+      const payload: SalesContextCache = {
+        timestamp: Date.now(),
+        sales: nextSales,
+        campaigns: nextCampaigns,
+        deliverables: nextDeliverables,
+      };
+      sessionStorage.setItem(SALES_CACHE_KEY, JSON.stringify(payload));
+    } catch {
+      // noop (private mode/quota issues)
+    }
+  }, []);
+
+  const loadDataInternal = useCallback(async (forceRefresh: boolean = true) => {
+    if (!forceRefresh) {
+      const cached = readCachedData();
+      if (cached) {
+        setSales(cached.sales);
+        setCampaigns(cached.campaigns);
+        setDeliverables(cached.deliverables);
+        setError(null);
+        setIsLoading(false);
+        return;
+      }
+    }
+
     setIsLoading(true);
     setError(null);
     try {
@@ -54,7 +111,7 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
         fetchDeliverables(),
       ]);
 
-      // Process Sales
+      let nextSales: UIDateSale[] = [];
       if (salesResult.error) {
         toast({
           variant: "destructive",
@@ -65,14 +122,14 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
         setError(prev => prev ? `${prev}\n${salesResult.error!}` : salesResult.error!);
       } else {
         const data = salesResult.data || [];
-        const salesWithDates: UIDateSale[] = data.map(s => {
+        nextSales = data.map(s => {
           const parsedDate = parseISO(s.createdAt);
           return { ...s, createdAt: isValid(parsedDate) ? parsedDate : new Date() };
         }).filter(s => isValid(s.createdAt));
-        setSales(salesWithDates);
+        setSales(nextSales);
       }
 
-      // Process Campaigns
+      let nextCampaigns: Campaign[] = [];
       if (campaignsResult.error) {
          toast({
           variant: "destructive",
@@ -83,15 +140,15 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
         setError(prev => prev ? `${prev}\n${campaignsResult.error!}` : campaignsResult.error!);
       } else {
         const campaignData = campaignsResult.data || [];
-        const campaignsWithDates = campaignData.map(c => ({
+        nextCampaigns = campaignData.map(c => ({
             ...c,
             startDate: isValid(c.startDate) ? c.startDate : new Date(),
             endDate: isValid(c.endDate) ? c.endDate : new Date(),
         }));
-        setCampaigns(campaignsWithDates);
+        setCampaigns(nextCampaigns);
       }
       
-      // Process Deliverables
+      let nextDeliverables: UIDeliverable[] = [];
       if (deliverablesResult.error) {
         toast({
           variant: "destructive",
@@ -102,11 +159,15 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
         setError(prev => prev ? `${prev}\n${deliverablesResult.error!}` : deliverablesResult.error!);
       } else {
         const data = deliverablesResult.data || [];
-        const deliverablesWithDates: UIDeliverable[] = data.map(d => {
+        nextDeliverables = data.map(d => {
           const parsedDate = parseISO(d.date);
           return { ...d, date: isValid(parsedDate) ? parsedDate : new Date() };
         }).filter(d => isValid(d.date));
-        setDeliverables(deliverablesWithDates);
+        setDeliverables(nextDeliverables);
+      }
+
+      if (!salesResult.error && !campaignsResult.error && !deliverablesResult.error) {
+        persistCache(nextSales, nextCampaigns, nextDeliverables);
       }
 
     } catch (err: any) {
@@ -121,13 +182,17 @@ export const SalesProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [persistCache, readCachedData, toast]);
+
+  const loadData = useCallback(async () => {
+    await loadDataInternal(true);
+  }, [loadDataInternal]);
 
   useEffect(() => {
     if (isMounted) {
-      loadData();
+      loadDataInternal(false);
     }
-  }, [isMounted, loadData]);
+  }, [isMounted, loadDataInternal]);
 
   const addSale = useCallback((newSale: UIDateSale, remove: boolean = false) => {
     if(remove) {

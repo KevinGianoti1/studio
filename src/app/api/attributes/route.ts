@@ -1,7 +1,11 @@
 // src/app/api/attributes/route.ts
-import { NextResponse, type NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { fetchMeetingsData } from '@/ai/flows/fetch-meetings-flow';
 import type { Meeting } from '@/types';
+import { isAuthorizedRequest } from '@/lib/api-auth';
+import { fail, ok } from '@/lib/api-response';
+import { logEvent } from '@/lib/observability';
+import { randomUUID } from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,24 +52,22 @@ function calculateAttributeAverages(meetings: Meeting[]): SellerAttributeData[] 
 
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get('Authorization');
-  const expectedApiKey = `Bearer ${process.env.NEXT_PUBLIC_VENDASCONTROL_API_KEY}`;
+  const requestId = request.headers.get('x-request-id') || randomUUID();
+  const route = '/api/attributes';
+  const startedAt = Date.now();
 
-  if (!process.env.NEXT_PUBLIC_VENDASCONTROL_API_KEY || authHeader !== expectedApiKey) {
-    return new NextResponse(JSON.stringify({ error: 'Não autorizado' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  if (!isAuthorizedRequest(request)) {
+    logEvent('warn', { event: 'api_unauthorized', requestId, route, status: 401 });
+    return fail('Não autorizado', 401, undefined, { 'x-request-id': requestId });
   }
 
   try {
     const meetingsResult = await fetchMeetingsData();
 
     if (meetingsResult.error) {
-      return new NextResponse(JSON.stringify({ error: meetingsResult.error }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const durationMs = Date.now() - startedAt;
+      logEvent('error', { event: 'api_attributes_fetch_error', requestId, route, status: 500, durationMs, details: meetingsResult.error });
+      return fail(meetingsResult.error, 500, undefined, { 'x-request-id': requestId });
     }
 
     const meetings = meetingsResult.data || [];
@@ -77,11 +79,12 @@ export async function GET(request: NextRequest) {
       attributeData,
     };
 
-    return NextResponse.json(response);
+    const durationMs = Date.now() - startedAt;
+    logEvent('info', { event: 'api_attributes_success', requestId, route, status: 200, durationMs });
+    return ok(response, 200, { 'x-request-id': requestId });
   } catch (error: any) {
-    return new NextResponse(JSON.stringify({ error: 'Erro interno do servidor', details: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const durationMs = Date.now() - startedAt;
+    logEvent('error', { event: 'api_attributes_unhandled_error', requestId, route, status: 500, durationMs, details: error.message });
+    return fail('Erro interno do servidor', 500, error.message, { 'x-request-id': requestId });
   }
 }

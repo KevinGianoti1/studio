@@ -3,10 +3,35 @@
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import Link from 'next/link';
-import { LayoutDashboard, Users, User, Tag, ClipboardList, Menu, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket } from 'lucide-react';
+import { LayoutDashboard, Users, User, Tag, ClipboardList, Radar, ShoppingCart, ClipboardCheck, Trophy, Rocket, Activity, Boxes } from 'lucide-react';
 import React from 'react';
+import { usePathname } from 'next/navigation';
+import { Input } from '@/components/ui/input';
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+    const environmentLabel = process.env.NODE_ENV === 'production' ? 'PROD' : process.env.NODE_ENV === 'development' ? 'DEV' : 'HML';
+    const [menuSearch, setMenuSearch] = React.useState('');
+    const menuItems = [
+      { href: '/', label: 'Visão Geral', icon: <LayoutDashboard />, match: (path: string) => path === '/' },
+      { href: '/accelerators', label: 'Aceleradores', icon: <Rocket />, match: (path: string) => path.startsWith('/accelerators') },
+      { href: '/competition', label: 'Competição', icon: <Trophy />, match: (path: string) => path.startsWith('/competition') },
+      { href: '/teams', label: 'Equipes', icon: <Users />, match: (path: string) => path.startsWith('/teams') },
+      { href: '/sellers', label: 'Vendedores', icon: <User />, match: (path: string) => path.startsWith('/sellers') || path.startsWith('/history/') },
+      { href: '/campaigns', label: 'Campanhas', icon: <Tag />, match: (path: string) => path.startsWith('/campaigns') },
+      { href: '/survey', label: 'Reunião 1:1', icon: <ClipboardList />, match: (path: string) => path.startsWith('/survey') },
+      { href: '/deliverables', label: 'Entregáveis', icon: <ClipboardCheck />, match: (path: string) => path.startsWith('/deliverables') },
+      { href: '/attributes', label: 'Atributos', icon: <Radar />, match: (path: string) => path.startsWith('/attributes') },
+      { href: '/sellout', label: 'Sell Out', icon: <ShoppingCart />, match: (path: string) => path.startsWith('/sellout') },
+      { href: '/catalog', label: 'Comercial 360', icon: <Boxes />, match: (path: string) => path.startsWith('/catalog') },
+      { href: '/health', label: 'Saúde', icon: <Activity />, match: (path: string) => path.startsWith('/health') },
+    ];
+
+    const normalizedSearch = menuSearch.trim().toLowerCase();
+    const visibleMenuItems = normalizedSearch
+      ? menuItems.filter((item) => item.label.toLowerCase().includes(normalizedSearch))
+      : menuItems;
+
     return (
         <SidebarProvider>
             <div className="flex min-h-screen">
@@ -86,87 +111,32 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                         <span className="text-lg font-bold tracking-tight text-primary">VendasControl</span>
                       </div>
                   </SidebarHeader>
+                  <div className="px-2 pb-2">
+                    <Input
+                      placeholder="Buscar seção..."
+                      value={menuSearch}
+                      onChange={(event) => setMenuSearch(event.target.value)}
+                      className="h-8"
+                    />
+                  </div>
                   <SidebarMenu>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild tooltip="Visão Geral">
-                        <Link href="/">
-                          <LayoutDashboard />
-                          <span>Visão Geral</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Aceleradores">
-                        <Link href="/accelerators">
-                          <Rocket />
-                          <span>Aceleradores</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Competição">
-                        <Link href="/competition">
-                          <Trophy />
-                          <span>Competição</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Análise de Equipes">
-                        <Link href="/teams">
-                          <Users />
-                          <span>Equipes</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Análise de Vendedores">
-                        <Link href="/sellers">
-                          <User />
-                          <span>Vendedores</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Campanhas">
-                        <Link href="/campaigns">
-                          <Tag />
-                          <span>Campanhas</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Reunião 1:1">
-                        <Link href="/survey">
-                          <ClipboardList />
-                          <span>Reunião 1:1</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Entregáveis">
-                        <Link href="/deliverables">
-                          <ClipboardCheck />
-                          <span>Entregáveis</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Atributos">
-                        <Link href="/attributes">
-                          <Radar />
-                          <span>Atributos</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                       <SidebarMenuButton asChild tooltip="Sell Out">
-                        <Link href="/sellout">
-                          <ShoppingCart />
-                          <span>Sell Out</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    {visibleMenuItems.map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton asChild tooltip={item.label} isActive={item.match(pathname)}>
+                          <Link href={item.href}>
+                            {item.icon}
+                            <span>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                    {visibleMenuItems.length === 0 && (
+                      <SidebarMenuItem>
+                        <div className="text-xs text-muted-foreground px-2 py-1">
+                          Nenhuma seção encontrada.
+                        </div>
+                      </SidebarMenuItem>
+                    )}
                   </SidebarMenu>
                 </SidebarContent>
               </Sidebar>
@@ -175,6 +145,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                     <div className="container flex h-16 items-center">
                         <SidebarTrigger className="md:hidden"/>
                         <div className="ml-auto flex items-center gap-2">
+                            <span className="text-xs font-semibold px-2 py-1 rounded-md bg-muted text-muted-foreground">
+                              {environmentLabel}
+                            </span>
                             <ThemeToggle />
                         </div>
                     </div>

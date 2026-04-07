@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useMemo, useState, Suspense, useCallback, useRef, useEffect } from 'react';
-import * as XLSX from 'xlsx';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { PageHeader, PageHeaderTitle, PageHeaderDescription } from '@/components/page-header';
@@ -14,8 +13,6 @@ import { ptBR } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { analyzeSellOut } from '@/ai/flows/sellout-flow';
 import type { ProductStats, YearlyClientReport, SellOutEntry, SellOutAnalysisInput } from '@/types';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import {
   ResponsiveContainer,
   BarChart as RechartsBarChart,
@@ -42,6 +39,26 @@ const formatCurrency = (value: number | null, context?: string) => {
   if (value === null || value === undefined) return '-';
    if (value === 0 && context === 'product') return '-';
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+};
+
+const parseExcelSerialDate = (serial: number): Date => {
+    const utcDays = Math.floor(serial - 25569);
+    const utcValue = utcDays * 86400;
+    const dateInfo = new Date(utcValue * 1000);
+    const fractionalDay = serial - Math.floor(serial) + 0.0000001;
+    const totalSeconds = Math.floor(86400 * fractionalDay);
+    const seconds = totalSeconds % 60;
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const minutes = totalMinutes % 60;
+    const hours = Math.floor(totalMinutes / 60);
+    return new Date(
+        dateInfo.getUTCFullYear(),
+        dateInfo.getUTCMonth(),
+        dateInfo.getUTCDate(),
+        hours,
+        minutes,
+        seconds
+    );
 };
 
 type ReportHistoryItem = {
@@ -173,8 +190,9 @@ function SellOutContent() {
                 if (!dateValue || !clientValue || isNaN(qtyValue) || isNaN(priceValue)) return;
 
                 try {
-                    const excelDate = typeof dateValue === 'number' ? XLSX.SSF.parse_date_code(dateValue) : null;
-                    const saleDate = excelDate ? new Date(excelDate.y, excelDate.m - 1, excelDate.d) : parse(String(dateValue), 'dd/MM/yyyy', new Date());
+                    const saleDate = typeof dateValue === 'number'
+                        ? parseExcelSerialDate(dateValue)
+                        : parse(String(dateValue), 'dd/MM/yyyy', new Date());
 
                     if (isNaN(saleDate.getTime())) return;
 
@@ -228,8 +246,9 @@ function SellOutContent() {
                 if (!dateValue || !productCodeValue || isNaN(qtyValue) || isNaN(priceValue) || priceValue <= 0) return;
 
                  try {
-                    const excelDate = typeof dateValue === 'number' ? XLSX.SSF.parse_date_code(dateValue) : null;
-                    const saleDate = excelDate ? new Date(excelDate.y, excelDate.m - 1, excelDate.d) : parse(String(dateValue), 'dd/MM/yyyy', new Date());
+                    const saleDate = typeof dateValue === 'number'
+                        ? parseExcelSerialDate(dateValue)
+                        : parse(String(dateValue), 'dd/MM/yyyy', new Date());
 
                     if (isNaN(saleDate.getTime())) return;
                     const year = getYear(saleDate);
@@ -288,7 +307,7 @@ function SellOutContent() {
             ...client,
             yearlyData: client.yearlyData.map(yearData => ({
                 ...yearData,
-                total: yearData.monthlySales.reduce((sum, current) => sum + (current || 0), 0)
+                total: yearData.monthlySales.reduce((sum: number, current) => sum + (current || 0), 0)
             }))
         }));
 
@@ -376,6 +395,7 @@ function SellOutContent() {
         setFileName(file.name);
         
         try {
+            const XLSX = await import('xlsx');
             const data = await file.arrayBuffer();
             const workbook = XLSX.read(data, { cellDates: false, dateNF: 'dd/mm/yyyy' });
             const sheetName = workbook.SheetNames[0];
@@ -485,10 +505,12 @@ function SellOutContent() {
     }, [filteredProductReportData, selectedYear, toast]);
 
     const exportToExcel = () => {
+        const run = async () => {
         if (!clientReportData || !productReportData) {
             toast({ variant: "destructive", title: "Sem dados para exportar" });
             return;
         }
+        const XLSX = await import('xlsx');
     
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet([[]]); // Start with an empty sheet
@@ -533,6 +555,15 @@ function SellOutContent() {
         const today = format(new Date(), 'yyyy-MM-dd');
         XLSX.writeFile(wb, `Relatorio_SellOut_${today}.xlsx`);
         toast({ title: "Exportado para Excel com sucesso!" });
+        };
+
+        run().catch((error: any) => {
+            toast({
+                variant: "destructive",
+                title: "Erro ao exportar Excel",
+                description: error?.message || "Não foi possível gerar o arquivo Excel.",
+            });
+        });
     };
 
     const exportToPdf = async () => {
@@ -542,10 +573,14 @@ function SellOutContent() {
         }
     
         const { default: html2canvas } = await import('html2canvas');
+        const [{ default: JsPdfCtor }] = await Promise.all([
+            import('jspdf'),
+            import('jspdf-autotable'),
+        ]);
     
-        const doc = new jsPDF({ orientation: 'landscape' });
+        const doc = new JsPdfCtor({ orientation: 'landscape' });
     
-        const addPageHeader = (title: string, docInstance: jsPDF) => {
+        const addPageHeader = (title: string, docInstance: any) => {
             docInstance.setFontSize(18);
             docInstance.text(title, 14, 20);
             docInstance.setFontSize(10);
@@ -556,7 +591,7 @@ function SellOutContent() {
         // --- Page 1: Charts ---
         addPageHeader('Business Intelligence - Resumo Gráfico', doc);
     
-        const addChartToPdf = async (element: HTMLElement | null, docInstance: jsPDF, x: number, y: number, width: number, height: number, title: string) => {
+        const addChartToPdf = async (element: HTMLElement | null, docInstance: any, x: number, y: number, width: number, height: number, title: string) => {
             if (element) {
                 // Temporarily add a class to show labels for PDF rendering
                 element.classList.add('render-for-pdf');

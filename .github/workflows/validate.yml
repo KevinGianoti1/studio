@@ -1,0 +1,66 @@
+name: Validate
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck + Build
+        run: npm run validate:all
+        env:
+          LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD || 'ci-password' }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID || 'ci-sheet' }}
+          GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL || 'ci@example.com' }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY || 'ci-private-key' }}
+
+      - name: Start app for smoke tests
+        if: ${{ secrets.VENDASCONTROL_API_KEY != '' }}
+        run: npm run start -- --hostname 127.0.0.1 --port 3000 &
+        env:
+          VENDASCONTROL_API_KEY: ${{ secrets.VENDASCONTROL_API_KEY }}
+
+      - name: Wait for app readiness
+        if: ${{ secrets.VENDASCONTROL_API_KEY != '' }}
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://127.0.0.1:3000/api/health -H "Authorization: Bearer $VENDASCONTROL_API_KEY" >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo 'App did not become ready in time'
+          exit 1
+        env:
+          VENDASCONTROL_API_KEY: ${{ secrets.VENDASCONTROL_API_KEY }}
+
+      - name: Smoke API
+        if: ${{ secrets.VENDASCONTROL_API_KEY != '' }}
+        run: npm run smoke:api
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:3000
+          SMOKE_ENDPOINTS: /api/health
+          VENDASCONTROL_API_KEY: ${{ secrets.VENDASCONTROL_API_KEY }}
+          LOGIN_PASSWORD: ${{ secrets.LOGIN_PASSWORD || 'ci-password' }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID || 'ci-sheet' }}
+          GOOGLE_CLIENT_EMAIL: ${{ secrets.GOOGLE_CLIENT_EMAIL || 'ci@example.com' }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY || 'ci-private-key' }}
